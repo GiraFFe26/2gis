@@ -5,7 +5,7 @@ import chromedriver_binary
 import time
 import pandas as pd
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.keys import Keys
 
 
@@ -37,12 +37,19 @@ def collect_data(url):
                             '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input').send_keys(text)
         driver.find_element(By.XPATH,
                             '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input').send_keys(Keys.ENTER)
-        time.sleep(4)
+        time.sleep(4.5)
         error = driver.find_element(By.XPATH, '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[1]').text
         if error == 'Точных совпадений нет. Посмотрите похожие места или измените запрос.':
             driver.find_element(By.XPATH,
                                 '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/div/button').click()
             continue
+        try:
+            driver.find_element(By.XPATH, '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div[2]/div/div/div/div/div/div/ul/li[1]/div/div[1]/div/input').click()
+            time.sleep(2)
+            driver.find_element(By.XPATH, '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[1]/div/div/div/div/div/div/div[2]/div/div/div/div/div/div/ul/li[1]/div/div[2]/button[1]/span').click()
+            time.sleep(3.5)
+        except (ElementNotInteractableException, NoSuchElementException):
+            pass
         try:
             src = driver.find_element(By.XPATH, '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[2]/div').get_attribute('innerHTML')
         except NoSuchElementException:
@@ -65,7 +72,11 @@ def collect_data(url):
                 rate = 0
                 feed = 0
             name = rating.next_sibling.find('span').text
-            address = to_next.find('div', class_='_4l12l8').text
+            try:
+                address = to_next.find('div', class_='_4l12l8').text
+            except AttributeError:
+                print(town)
+                continue
             towns_excel.append(town)
             names.append(name.strip())
             places.append(address.strip())
@@ -74,6 +85,9 @@ def collect_data(url):
         for item in to_next.next_siblings:
             if item.get('class') == None:
                 rating = item.div.div
+                if rating.div == None:
+                    print(town)
+                    continue
                 if rating.div.text != '':
                     rate = int(rating.div.div.div.get('style').split()[-1].split('px')[0]) / 10
                     feed = rating.div.text
@@ -98,7 +112,7 @@ def collect_data(url):
                 rates.append(f'{rate} ★')
                 feeds.append(int(feed))
                 k += 1
-                if k == 3:
+                if k == 12:
                     break
         driver.find_element(By.XPATH,
                             '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/div/button').click()
