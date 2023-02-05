@@ -26,6 +26,7 @@ def collect_data(url):
     chromeOptions.add_argument("--disable-gpu")
     chromeOptions.add_argument("disable-infobars")
     driver = webdriver.Chrome(options=chromeOptions)
+    time.sleep(3.5)
     driver.get(url)
     driver.find_element(By.ID, 'acceptRiskButton').click()
     with open('towns.txt', 'r', encoding='UTF-8') as file:
@@ -102,7 +103,7 @@ def collect_data(url):
                 try:
                     address = item.find('div', class_='_4l12l8').text
                 except AttributeError:
-                    print(town)
+                    print(town, 'no address')
                     continue
                 if your_town in address:
                     break
