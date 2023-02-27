@@ -28,11 +28,14 @@ def collect_data(url):
     driver = webdriver.Chrome(options=chromeOptions)
     time.sleep(3.5)
     driver.get(url)
-    driver.find_element(By.ID, 'acceptRiskButton').click()
+    try:
+        driver.find_element(By.ID, 'acceptRiskButton').click()
+    except NoSuchElementException:
+        pass
     with open('towns.txt', 'r', encoding='UTF-8') as file:
         towns = [i.strip() for i in file.readlines()]
     your_town = driver.find_element(By.XPATH, '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[2]/div/div/div[2]/div/div/div/div/div/div/div[1]/div[1]/div[3]/div[1]/h1').text.strip()
-    for town in towns:
+    for town in towns[:3]:
         text = f'{town} ремонт телефонов'
         driver.find_element(By.XPATH,
                             '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/input').send_keys(text)
@@ -76,7 +79,41 @@ def collect_data(url):
             try:
                 address = to_next.find('div', class_='_4l12l8').text
             except AttributeError:
-                print(town)
+                print(town, 'skipped')
+                for item in to_next.next_siblings:
+                    if item.get('class') == None:
+                        rating = item.div.div
+                        if rating.div == None:
+                            print(town)
+                            continue
+                        if rating.div.text != '':
+                            rate = int(rating.div.div.div.get('style').split()[-1].split('px')[0]) / 10
+                            feed = rating.div.text
+                        elif rating.div.next_sibling != None:
+                            if rating.div.next_sibling.text != '':
+                                rate = int(rating.div.next_sibling.div.div.get('style').split()[-1].split('px')[0]) / 10
+                                feed = rating.div.next_sibling.text
+                        else:
+                            rate = 0
+                            feed = 0
+                        name = rating.next_sibling.find('span').text
+                        try:
+                            address = item.find('div', class_='_4l12l8').text
+                        except AttributeError:
+                            continue
+                        if your_town in address:
+                            break
+                        if k == 1:
+                            towns_excel.append(town)
+                        else:
+                            towns_excel.append('')
+                        names.append(name.strip())
+                        places.append(address.strip())
+                        rates.append(f'{rate} ★')
+                        feeds.append(int(feed))
+                        k += 1
+                        if k == 12:
+                            break
                 continue
             towns_excel.append(town)
             names.append(name.strip())
@@ -103,7 +140,6 @@ def collect_data(url):
                 try:
                     address = item.find('div', class_='_4l12l8').text
                 except AttributeError:
-                    print(town, 'no address')
                     continue
                 if your_town in address:
                     break
