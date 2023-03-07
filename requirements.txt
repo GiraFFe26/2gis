@@ -9,7 +9,7 @@ bs4==0.0.1
 certifi==2022.9.14
 cffi==1.15.1
 charset-normalizer==2.1.1
-chromedriver-binary==109.0.5414.74.0
+chromedriver-binary==110.0.5481.77.0
 Eel==0.14.0
 et-xmlfile==1.1.0
 fake-useragent==1.1.1
