@@ -21,7 +21,7 @@ def collect_data(url):
     chromeOptions.add_argument('--disable-dev-shm-usage')
     chromeOptions.add_argument("--disable-gpu")
     chromeOptions.add_argument("--remote-debugging-port=9231")
-    chromeOptions.binary_location = "/usr/bin/chromium-browser"
+    chromeOptions.binary_location = "/opt/google/chrome/chrome"
     driver = webdriver.Chrome(options=chromeOptions)
     time.sleep(3.5)
     driver.get(url)
@@ -117,6 +117,8 @@ def collect_data(url):
                         k += 1
                         if k == 12:
                             break
+                driver.find_element(By.XPATH,
+                                    '/html/body/div[2]/div/div/div[1]/div[1]/div[2]/div/div/div[1]/div/div/div/div/div[2]/form/div/div/button').click()
                 continue
             towns_excel.append(town)
             names.append(name.strip())
